@@ -105,17 +105,11 @@ private struct MenuBarLabelView: View {
                 .animation(isManual ? .linear(duration: 1).repeatForever(autoreverses: false) : .easeOut(duration: 0.25), value: rotationAngle)
 
             VStack(alignment: .leading, spacing: -1) {
-                Text(Self.fmtTop(snap))
-                    .font(.system(size: 8, design: .monospaced))
-                    .foregroundStyle(tempColor(Self.fmtTop(snap)))
-                Text(Self.fmtBot(snap))
-                    .font(.system(size: 8, design: .monospaced))
-                    .foregroundStyle(tempColor(Self.fmtBot(snap)))
+                fixedWidthText(Self.fmtTop(snap), reserve: "100.0", size: 8, color: tempColor(Self.fmtTop(snap)))
+                fixedWidthText(Self.fmtBot(snap), reserve: "100.0", size: 8, color: tempColor(Self.fmtBot(snap)))
             }
 
-            Text(Self.fmtRPM(snap))
-                .font(.system(size: 9, design: .monospaced))
-                .foregroundStyle(.secondary)
+            fixedWidthText(Self.fmtRPM(snap), reserve: "9.9k", size: 9, color: .secondary)
         }
         .onReceive(animTimer) { _ in
             if isManual {
@@ -141,6 +135,18 @@ private struct MenuBarLabelView: View {
     static func fmtRPM(_ snap: SensorSnapshot) -> String {
         guard let rpm = snap.avgRPM else { return "--" }
         return rpm >= 1000 ? String(format: "%.1fk", rpm / 1000) : String(format: "%.0f", rpm)
+    }
+
+    /// 用隐藏的最宽占位文本撑开固定宽度，保证数值变化时菜单栏图标不位移。
+    private func fixedWidthText(_ value: String, reserve: String, size: CGFloat, color: Color) -> some View {
+        ZStack(alignment: .leading) {
+            Text(reserve)
+                .font(.system(size: size, design: .monospaced).monospacedDigit())
+                .hidden()
+            Text(value)
+                .font(.system(size: size, design: .monospaced).monospacedDigit())
+                .foregroundStyle(color)
+        }
     }
 
     private func tempColor(_ s: String) -> Color {
